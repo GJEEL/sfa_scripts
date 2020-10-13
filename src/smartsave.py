@@ -84,7 +84,7 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.scenefile.descriptor = self.descriptor_le.text()
         self.scenefile.task = self.task_le.text()
         self.scenefile.ver = self.ver_sbx.value()
-        self.scenefile.ext = self.ext_lbl.text()
+        self.scenefile.ext = self.ext_cb.currentText()
         self.scenefile.save()
 
     @QtCore.Slot()
@@ -114,13 +114,15 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.ver_sbx.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
         self.ver_sbx.setFixedWidth(50)
         self.ver_sbx.setValue(self.scenefile.ver)
-        self.ext_lbl = QtWidgets.QLabel(".ma")
+        self.ext_cb = QtWidgets.QComboBox(self)
+        self.ext_cb.addItem(".ma")
+        self.ext_cb.addItem(".mb")
         layout.addWidget(self.descriptor_le, 1, 0)
         layout.addWidget(QtWidgets.QLabel("_"), 1, 1)
         layout.addWidget(self.task_le, 1, 2)
         layout.addWidget(QtWidgets.QLabel("_v"), 1, 3)
         layout.addWidget(self.ver_sbx, 1, 4)
-        layout.addWidget(self.ext_lbl, 1, 5)
+        layout.addWidget(self.ext_cb, 1, 5)
         return layout
 
     def _create_filename_headers(self):
