@@ -51,13 +51,45 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.main_lay.addLayout(self.button_lay)
         self.setLayout(self.main_lay)
 
+    def create_connections(self):
+        """Connect signals and slots"""
+        self.folder_browse_btn.clicked.connect(self._browse_folder)
+        self.save_btn.clicked.connect(self._save)
+        self.cancel_btn.clicked.connect(self._cancel)
+
+    @QtCore.Slot()
+    def _save(self):
+        """Save the scene"""
+        self.scenefile.folder_path = self.folder_le.text()
+        self.scenefile.descriptor = self.descriptor_le.text()
+        self.scenefile.task = self.task_le.text()
+        self.scenefile.ver = self.ver_sbx.value()
+        self.scenefile.ext = self.ext_lbl.text()
+        self.scenefile.save()
+
+    @QtCore.Slot()
+    def _browse_folder(self):
+        """Opens a dialogue box to browse the folder"""
+        folder = QtWidgets.QFileDialog.getExistingDirectory(
+            parent=self, caption="Select folder", dir=self.folder_le.text(),
+            options=QtWidgets.QFileDialog.ShowDirsOnly |
+                    QtWidgets.QFileDialog.DontResolveSymlinks)
+        self.folder_le.setText(folder)
+
+    @QtCore.Slot()
+    def _cancel(self):
+        """Quits the dialogue"""
+        self.close()
+
     def _create_button_ui(self):
-        """Sets up save buttons"""
+        """Sets up buttons"""
         self.save_btn = QtWidgets.QPushButton("Save")
         self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
+        self.cancel_btn = QtWidgets.QPushButton("Cancel")
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.save_btn)
-        layout.addWidget((self.save_increment_btn))
+        layout.addWidget(self.save_increment_btn)
+        layout.addWidget(self.cancel_btn)
         return layout
 
     def _create_filename_ui(self):
@@ -108,7 +140,7 @@ class SmartSaveUI(QtWidgets.QDialog):
 class SceneFile(object):
     """An abstract representation of a Scene file."""
     def __init__(self, path=None):
-        self.folder_path = Path(cmds.workspace(query=True,
+        self._folder_path = Path(cmds.workspace(query=True,
                                                rootDirectory=True)) / "scenes"
         self.descriptor = 'main'
         self.task = 'model'
@@ -121,6 +153,14 @@ class SceneFile(object):
             log.info("Initialized with default properties.")
             return
         self._init_from_path(path)
+
+    @property
+    def folder_path(self):
+        return self._folder_path
+
+    @folder_path.setter
+    def folder_path(self, val):
+        self._folder_path = Path(val)
 
     @property
     def filename(self):
