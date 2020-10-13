@@ -55,17 +55,8 @@ class SmartSaveUI(QtWidgets.QDialog):
         """Connect signals and slots"""
         self.folder_browse_btn.clicked.connect(self._browse_folder)
         self.save_btn.clicked.connect(self._save)
+        self.save_inc_btn.clicked.connect(self._save_increment)
         self.cancel_btn.clicked.connect(self._cancel)
-
-    @QtCore.Slot()
-    def _save(self):
-        """Save the scene"""
-        self.scenefile.folder_path = self.folder_le.text()
-        self.scenefile.descriptor = self.descriptor_le.text()
-        self.scenefile.task = self.task_le.text()
-        self.scenefile.ver = self.ver_sbx.value()
-        self.scenefile.ext = self.ext_lbl.text()
-        self.scenefile.save()
 
     @QtCore.Slot()
     def _browse_folder(self):
@@ -77,6 +68,26 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.folder_le.setText(folder)
 
     @QtCore.Slot()
+    def _save(self):
+        """Save the scene"""
+        self._set_scenefile_properties_from_ui()
+
+    @QtCore.Slot()
+    def _save_increment(self):
+        """Save an increment of the scene"""
+        self._set_scenefile_properties_from_ui()
+        self.scenefile.save_increment()
+        self.ver_sbx.setValue(self.scenefile.ver)
+
+    def _set_scenefile_properties_from_ui(self):
+        self.scenefile.folder_path = self.folder_le.text()
+        self.scenefile.descriptor = self.descriptor_le.text()
+        self.scenefile.task = self.task_le.text()
+        self.scenefile.ver = self.ver_sbx.value()
+        self.scenefile.ext = self.ext_lbl.text()
+        self.scenefile.save()
+
+    @QtCore.Slot()
     def _cancel(self):
         """Quits the dialogue"""
         self.close()
@@ -84,11 +95,11 @@ class SmartSaveUI(QtWidgets.QDialog):
     def _create_button_ui(self):
         """Sets up buttons"""
         self.save_btn = QtWidgets.QPushButton("Save")
-        self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
+        self.save_inc_btn = QtWidgets.QPushButton("Save Increment")
         self.cancel_btn = QtWidgets.QPushButton("Cancel")
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.save_btn)
-        layout.addWidget(self.save_increment_btn)
+        layout.addWidget(self.save_inc_btn)
         layout.addWidget(self.cancel_btn)
         return layout
 
@@ -210,7 +221,7 @@ class SceneFile(object):
         latest_version_num =int(latest_scenefile.split("_v")[-1])
         return latest_version_num + 1
 
-    def increment_save(self):
+    def save_increment(self):
         """Increments the version and saves the scene file.
 
         If the existing version of a file already exists, it should increment
