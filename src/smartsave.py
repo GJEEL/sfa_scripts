@@ -20,15 +20,19 @@ class SmartSaveUI(QtWidgets.QDialog):
     """Smart Save UI Class"""
 
     def __init__(self):
+        """Constructor"""
         super(SmartSaveUI, self).__init__(parent=maya_main_window())
         self.setWindowTitle("Smart Save")
         self.setMinimumWidth(500)
         self.setMaximumHeight(200)
         self.setWindowFlags(self.windowFlags() ^
                             QtCore.Qt.WindowContextHelpButtonHint)
+        self.scenefile = SceneFile()
         self.create_ui()
+        self.create_connections()
 
     def create_ui(self):
+        """Creating widgets for the UI"""
         self.title_lbl = QtWidgets.QLabel("Smart Save")
         self.title_lbl.setStyleSheet("font: bold")
         self.title_lbl.setMinimumWidth(500)
@@ -48,6 +52,7 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.setLayout(self.main_lay)
 
     def _create_button_ui(self):
+        """Sets up save buttons"""
         self.save_btn = QtWidgets.QPushButton("Save")
         self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
         layout = QtWidgets.QHBoxLayout()
@@ -56,15 +61,16 @@ class SmartSaveUI(QtWidgets.QDialog):
         return layout
 
     def _create_filename_ui(self):
+        """Sets up fields for creating filename"""
         layout = self._create_filename_headers()
-        self.descriptor_le = QtWidgets.QLineEdit("main")
+        self.descriptor_le = QtWidgets.QLineEdit(self.scenefile.descriptor)
         self.descriptor_le.setMinimumWidth(100)
-        self.task_le = QtWidgets.QLineEdit("model")
+        self.task_le = QtWidgets.QLineEdit(self.scenefile.task)
         self.task_le.setFixedWidth(50)
         self.ver_sbx = QtWidgets.QSpinBox()
         self.ver_sbx.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
         self.ver_sbx.setFixedWidth(50)
-        self.ver_sbx.setValue(1)
+        self.ver_sbx.setValue(self.scenefile.ver)
         self.ext_lbl = QtWidgets.QLabel(".ma")
         layout.addWidget(self.descriptor_le, 1, 0)
         layout.addWidget(QtWidgets.QLabel("_"), 1, 1)
@@ -75,6 +81,7 @@ class SmartSaveUI(QtWidgets.QDialog):
         return layout
 
     def _create_filename_headers(self):
+        """Sets the header names for filename fields"""
         self.descriptor_header_lbl = QtWidgets.QLabel("Descriptor")
         self.descriptor_header_lbl.setStyleSheet("font: bold")
         self.task_header_lbl = QtWidgets.QLabel("Task")
@@ -88,6 +95,7 @@ class SmartSaveUI(QtWidgets.QDialog):
         return layout
 
     def _create_folder_ui(self):
+        """Sets the folder path for saving"""
         default_folder = Path(cmds.workspace(rootDirectory=True, query=True))
         default_folder = default_folder / "scenes"
         self.folder_le = QtWidgets.QLineEdit(default_folder)
@@ -97,21 +105,20 @@ class SmartSaveUI(QtWidgets.QDialog):
         layout.addWidget(self.folder_browse_btn)
         return layout
 
-
 class SceneFile(object):
     """An abstract representation of a Scene file."""
     def __init__(self, path=None):
-        self.folder_path = Path()
+        self.folder_path = Path(cmds.workspace(query=True,
+                                               rootDirectory=True)) / "scenes"
         self.descriptor = 'main'
-        self.task = None
+        self.task = 'model'
         self.ver = 1
         self.ext = '.ma'
         scene = pmc.system.sceneName()
         if not path and scene:
             path = scene
         if not path and not scene:
-            log.warning("Unable to initialise SceneFile object from a new"
-                        " scene. Please specify a path.")
+            log.info("Initialized with default properties.")
             return
         self._init_from_path(path)
 
